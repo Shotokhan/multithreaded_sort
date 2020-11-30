@@ -1,0 +1,32 @@
+{
+  "test_params": [
+    {
+      "name": "base",
+      "start": 0,
+      "step": 100,
+      "end": 1100
+    },
+    {
+      "name": "low",
+      "start": 10000,
+      "step": 10000,
+      "end": 110000
+    },
+    {
+      "name": "mid",
+      "start": 1000000,
+      "step": 1000000,
+      "end": 11000000
+    },
+    {
+      "name": "high",
+      "start": 100000000,
+      "step": 100000000,
+      "end": 1100000000
+    }
+  ],
+  "fields": [
+    "Dimension",
+    "Elapsed time"
+  ]
+}
