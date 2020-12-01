@@ -9,37 +9,41 @@ import binmerge
 n_threads = 2**int(log2(cpu_count()))   # pointless to have more running threads than available cores
 
 
-def mergeSort(vector, start=0, end=None):
+def mergeSort(vector, start=0, end=None, parallel_merge=True):
     if end is None:
         end = len(vector)
-    merge_sort = MergeSort(vector, start, end)
+    merge_sort = MergeSort(vector, start, end, parallel_merge=parallel_merge)
     merge_sort.start()
     merge_sort.join()
 
 
 class MergeSort(Thread):
-    def __init__(self, shared_vect, start=0, end=None, depth=0):
+    def __init__(self, shared_vect, start=0, end=None, depth=0, parallel_merge=True):
         super().__init__()
         self.vector = shared_vect
         self.vect_start = start
         self.vect_end = end if end is not None else len(self.vector)
         self.depth = depth
+        self.parallel_merge = parallel_merge
         # print("Hello I'm a Merge Sort Thread with depth {}".format(self.depth))
 
     def run(self):
         if (self.vect_start + 1) < self.vect_end:
             vect_mid = (self.vect_start + self.vect_end) // 2
             if (2 ** self.depth) < n_threads:
-                merge_sort_left = MergeSort(self.vector, self.vect_start, vect_mid, self.depth + 1)
+                merge_sort_left = MergeSort(self.vector, self.vect_start, vect_mid, self.depth + 1, self.parallel_merge)
                 merge_sort_left.start()
-                merge_sort_right = MergeSort(self.vector, vect_mid, self.vect_end, self.depth + 1)
+                merge_sort_right = MergeSort(self.vector, vect_mid, self.vect_end, self.depth + 1, self.parallel_merge)
                 merge_sort_right.start()
                 merge_sort_left.join()
                 merge_sort_right.join()
-                merge = Merge(self.vector, self.vect_start, vect_mid, vect_mid, self.vect_end, self.vect_start,
-                              depth=self.depth)
-                merge.start()
-                merge.join()
+                if self.parallel_merge:
+                    merge = Merge(self.vector, self.vect_start, vect_mid, vect_mid, self.vect_end, self.vect_start,
+                                  depth=self.depth)
+                    merge.start()
+                    merge.join()
+                else:
+                    standard_algo.merge(self.vector, self.vect_start, vect_mid, self.vect_end)
             else:
                 standard_algo.mergeSort(self.vector, self.vect_start, vect_mid)
                 standard_algo.mergeSort(self.vector, vect_mid, self.vect_end)
@@ -95,5 +99,5 @@ class Merge(Thread):
 if __name__ == "__main__":
     u = [10, 1, 5, -1, 7, 4, 0, 3, 2, 0, 15, 8]
     print(u)
-    mergeSort(u)
+    mergeSort(u, parallel_merge=False)
     print(u)

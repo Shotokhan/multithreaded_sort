@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import csv
 import json
-import math
+# import math
 
 matplotlib.use('Agg')
 
@@ -22,32 +22,29 @@ def make_plots(config, data):
         plt.xlabel("{}".format(config['fields'][0]))
         plt.ylabel("{} (seconds)".format(config['fields'][1]))
         plt.legend(loc='upper left')
-    # put these two inside the loop for separate plots
+    # put these two lines inside the loop for separate plots
     plt.savefig("performance_eval_plot_{}.png".format(time.strftime("%d_%m_%Y_%H:%M:%S", time.localtime())))
     plt.close()
 
 
-def read_data(multi_thread_file, single_thread_file):
+def read_data(config, filenames):
     data = {}
-    with open(multi_thread_file, 'r') as f:
-        from_file = csv.reader(f)
-        from_file = [line for line in from_file]
-    from_file = from_file[1:]       # first line is header
-    data["Multi-threading"] = from_file
-    with open(single_thread_file, 'r') as f:
-        from_file = csv.reader(f)
-        from_file = [line for line in from_file]
-    from_file = from_file[1:]
-    data["Single-threading"] = from_file
+    for i in range(len(filenames)):
+        with open(filenames[i], 'r') as f:
+            from_file = csv.reader(f)
+            from_file = [line for line in from_file]
+        from_file = from_file[1:]       # first line is header
+        data[config["plot_names"][i]] = from_file
     return data
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: {} <multi-threaded_results>.csv <single-threaded_results>.csv".format(sys.argv[0]))
+    if len(sys.argv) != 4:
+        print("Usage: {} <multi-threaded-par-merge>.csv <single-threaded>.csv "
+              "<multi-threaded-serial-merge>.csv".format(sys.argv[0]))
     else:
-        multi_threaded, single_threaded = sys.argv[1], sys.argv[2]
+        files = sys.argv[1:]
         with open('config.JSON', 'r') as f:
             config = json.load(f)
-        data = read_data(multi_threaded, single_threaded)
+        data = read_data(config, files)
         make_plots(config, data)
